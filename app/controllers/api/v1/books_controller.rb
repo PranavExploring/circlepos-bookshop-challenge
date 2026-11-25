@@ -41,10 +41,9 @@ module Api
       end
 
       def sell
-        quantity = (params[:quantity] || 1).to_i
-        @book.decrement_stock!(quantity)
-        render json: { message: "Sale recorded", book: @book }, status: :ok
-      rescue StandardError => e
+        book = PosCheckoutService.new(book: @book, quantity: params[:quantity] || 1).call
+        render json: { message: "Sale recorded", book: book }, status: :ok
+      rescue PosCheckoutService::OutOfStockError, ArgumentError => e
         render json: { error: e.message }, status: :unprocessable_entity
       end
 
